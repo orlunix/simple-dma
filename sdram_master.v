@@ -22,14 +22,14 @@ module sdram_master(
 	// read master port interface
 	avm_read_address,
 	avm_read_read,
-	avm_read_byteenable,
+	//avm_read_byteenable,
 	avm_read_readdata,
 	avm_read_waitrequest,
 	
 	// write master port interface
 	avm_write_address,
 	avm_write_write,
-	avm_write_byteenable,
+	//avm_write_byteenable,
 	avm_write_writedata,
 	avm_write_waitrequest
 
@@ -49,17 +49,18 @@ output	avs_s1_waitrequest;
 	// read master port interface
 output	reg	[31:0]	avm_read_address;
 output	reg	avm_read_read;
-output	reg	[3:0]	avm_read_byteenable;
-input	[31:0]	avm_read_readdata;
+//output	reg	[3:0]	avm_read_byteenable;
+//input	[31:0]	avm_read_readdata;
+input	[15:0]	avm_read_readdata;
 input	avm_read_waitrequest;
 	
 	// write master port interface
 output	reg	[31:0]	avm_write_address;
 output	reg	avm_write_write;
-output	reg	[3:0]	avm_write_byteenable;
-output	reg	[31:0]	avm_write_writedata;
+//output	reg	[3:0]	avm_write_byteenable;
+//output	reg	[31:0]	avm_write_writedata;
+output	reg	[15:0]	avm_write_writedata;
 input	avm_write_waitrequest;
-
 
 reg	[31:0]	S_addr;//source address
 reg	[31:0]	D_addr;//destination  address
@@ -68,7 +69,7 @@ reg	[31:0]	Longth;
 reg	Status;
 
 //reg 	[31:0] 	DMA_DATA;
-reg 	[7:0] 	DMA_DATA;
+reg 	[15:0] 	DMA_DATA;
 
 reg 	[31:0]	DMA_Cont;
 
@@ -103,6 +104,7 @@ begin
 						`S_ADDR:			avs_s1_readdata <= S_addr;
 						`D_ADDR:			avs_s1_readdata <= D_addr;
 						`LONGTH:			avs_s1_readdata <= Longth;
+						`STATUS_ADDR:	avs_s1_readdata <= {31'h0,Status};
 						default: 			avs_s1_readdata <= 32'h0;
 					endcase
 				end
@@ -169,14 +171,14 @@ begin
 	else begin
 		case(DMA_state)
 			DMA_IDLE: begin
-				DMA_Cont <= 0;
-				done 				<= 0;
+				DMA_Cont <= 32'h0;
+				done 				<= 1'b0;
 				if(start) 
 					DMA_state 		<= READ;
 			end
 			READ: begin
 				avm_read_address <= S_addr + DMA_Cont;
-				avm_read_byteenable <= 4'b0001; 
+				//avm_read_byteenable <= 4'b0001; 
 				avm_read_read <= 1'b1;
 				DMA_state	<= WAIT_READ;
 			end
@@ -190,16 +192,17 @@ begin
 			end
 			WRITE: begin
 				avm_write_address <= D_addr + DMA_Cont;
-				avm_write_byteenable <= 4'b0001;
+				//avm_write_byteenable <= 4'b0001;
 				avm_write_write <= 1'b1;
 				avm_write_writedata <= DMA_DATA;
+				//avm_write_writedata <= DMA_Cont;//temp test
 				DMA_state <= WAIT_WRITE;
 			end
 			WAIT_WRITE: begin
-				DMA_Cont <= DMA_Cont + 32'h1;
 				if(avm_write_waitrequest == 1'b0 )
 					begin
-						avm_write_address <= 0;
+						DMA_Cont <= DMA_Cont + 32'h2;
+						//avm_write_address <= 0;
 						avm_write_write <= 1'b0;
 						if(DMA_Cont < Longth)
 							DMA_state <= READ;
