@@ -91,7 +91,7 @@ begin
 		end
 		else 	begin
 			if((avs_s1_chipselect==1'b1) && (avs_s1_write==1'b1)) begin
-				case({avs_s1_address,2'b00})
+				case(avs_s1_address)
 					`S_ADDR:			S_addr 		<= avs_s1_writedata;
 					`D_ADDR:			D_addr 		<= avs_s1_writedata;
 					`LONGTH:			Longth 		<= avs_s1_writedata;
@@ -99,7 +99,7 @@ begin
 			end
 			else	begin
 				if((avs_s1_chipselect==1'b1) && (avs_s1_read==1'b1)) begin
-					case({avs_s1_address,2'b00})
+					case(avs_s1_address)
 						`S_ADDR:			avs_s1_readdata <= S_addr;
 						`D_ADDR:			avs_s1_readdata <= D_addr;
 						`LONGTH:			avs_s1_readdata <= Longth;
@@ -117,7 +117,7 @@ always@(posedge clk or posedge reset)
 begin
 	if(reset)
 		start 		<= 1'b0;
-	else 	if((avs_s1_chipselect==1'b1) & (avs_s1_write==1'b1) & ({avs_s1_address,2'b00} == `START_ADDR))	
+	else 	if((avs_s1_chipselect==1'b1) & (avs_s1_write==1'b1) & (avs_s1_address == `START_ADDR))	
 				start 	<= 1'b1;
 			else start 	<= 1'b0;
 end
@@ -138,7 +138,7 @@ begin
 	begin
 		Status <= 1'b0;
 	end
-	else 	if((avs_s1_chipselect==1'b1) &  (avs_s1_write==1'b1)  & ({avs_s1_address,2'b00} == `START_ADDR) )	
+	else 	if((avs_s1_chipselect==1'b1) &  (avs_s1_write==1'b1)  & (avs_s1_address == `START_ADDR) )	
 			begin
 				Status <= 1'b0;
 			end
@@ -189,7 +189,7 @@ begin
 				end
 			end
 			WRITE: begin
-				avm_write_address <= S_addr + DMA_Cont;
+				avm_write_address <= D_addr + DMA_Cont;
 				avm_write_byteenable <= 4'b0001;
 				avm_write_write <= 1'b1;
 				avm_write_writedata <= DMA_DATA;
